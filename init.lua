@@ -172,6 +172,7 @@ vim.o.confirm = true
 -- Clear highlights on search when pressing <Esc> in normal mode
 --  See `:help hlsearch`
 vim.keymap.set('n', '<Esc>', '<cmd>nohlsearch<CR>')
+vim.keymap.set('n', '<leader>e', ':NvimTreeToggle<CR>')
 
 -- Diagnostic keymaps
 vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagnostic [Q]uickfix list' })
@@ -183,6 +184,21 @@ vim.keymap.set('n', '<leader>q', vim.diagnostic.setloclist, { desc = 'Open diagn
 -- NOTE: This won't work in all terminal emulators/tmux/etc. Try your own mapping
 -- or just use <C-\><C-n> to exit terminal mode
 vim.keymap.set('t', '<Esc><Esc>', '<C-\\><C-n>', { desc = 'Exit terminal mode' })
+
+-- vim.keymap.set('n', '<leader>t', ':term<CR>', { desc = 'Terminal' })
+
+-- Terminal split keymaps under <leader>t
+vim.keymap.set('n', '<leader>td', ':split | term<CR>', { noremap = true, silent = true, desc = 'Down (horizontal split)' }) -- Down (horizontal split)
+vim.keymap.set('n', '<leader>tr', ':vsplit | term<CR>', { noremap = true, silent = true, desc = 'Right (vertical split)' }) -- Right (vertical split)
+vim.keymap.set('n', '<leader>tl', ':leftabove vsplit | term<CR>', { noremap = true, silent = true, desc = 'Left (vertical split)' }) -- Left (vertical split)
+
+vim.keymap.set('n', '<leader>tj', function()
+  require('toggleterm').toggle(1)
+end, { desc = 'Toggle Terminal' })
+
+vim.keymap.set('n', '<leader>tv', function()
+  require('toggleterm').toggle(1, nil, 'vertical')
+end, { desc = 'Toggle Vertical Terminal' })
 
 -- TIP: Disable arrow keys in normal mode
 -- vim.keymap.set('n', '<left>', '<cmd>echo "Use h to move!!"<CR>')
@@ -271,6 +287,14 @@ require('lazy').setup({
   -- options to `gitsigns.nvim`.
   --
   -- See `:help gitsigns` to understand what the configuration keys do
+  {
+    'nvim-tree/nvim-tree.lua',
+    version = '*',
+    dependencies = { 'nvim-tree/nvim-web-devicons' },
+    config = function()
+      require('nvim-tree').setup {}
+    end,
+  },
   { -- Adds git related signs to the gutter, as well as utilities for managing changes
     'lewis6991/gitsigns.nvim',
     opts = {
@@ -282,6 +306,27 @@ require('lazy').setup({
         changedelete = { text = '~' },
       },
     },
+  },
+  -- Mason (LSP/DAP/Linter/Formatter installer)
+  { 'williamboman/mason.nvim' },
+  { 'williamboman/mason-lspconfig.nvim' },
+  -- C# Roslyn LSP (modern replacement for OmniSharp)
+  {
+    'seblyng/roslyn.nvim',
+    -- The plugin auto-configures itself; you can tweak opts later
+    opts = {},
+  },
+  {
+    'akinsho/toggleterm.nvim',
+    version = '*',
+    config = function()
+      require('toggleterm').setup {
+        -- You can customize direction, size, etc. here
+        open_mapping = [[<leader>tj]], -- Example: <leader>tj to toggle
+        direction = 'horizontal', -- "vertical", "float", "tab" also available
+        size = 15,
+      }
+    end,
   },
 
   -- NOTE: Plugins can also be configured to run Lua code when they are loaded.
@@ -345,7 +390,7 @@ require('lazy').setup({
       -- Document existing key chains
       spec = {
         { '<leader>s', group = '[S]earch' },
-        { '<leader>t', group = '[T]oggle' },
+        { '<leader>l', group = '[T]oggle' },
         { '<leader>h', group = 'Git [H]unk', mode = { 'n', 'v' } },
       },
     },
@@ -718,6 +763,12 @@ require('lazy').setup({
         'stylua', -- Used to format Lua code
       })
       require('mason-tool-installer').setup { ensure_installed = ensure_installed }
+      require('mason').setup {
+        registries = {
+          'github:mason-org/mason-registry',
+          'github:Crashdummyy/mason-registry',
+        },
+      }
 
       require('mason-lspconfig').setup {
         ensure_installed = {}, -- explicitly set to an empty table (Kickstart populates installs via mason-tool-installer)
